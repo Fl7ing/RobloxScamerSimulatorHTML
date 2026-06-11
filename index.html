@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scammer Simulator: The Cyber Path</title>
+    <style>
+        /* ============================================
+           ГЛОБАЛЬНЫЕ СТИЛИ И БАЗОВАЯ НАСТРОЙКА
+        ============================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #0f0;
+            overflow: hidden;
+            height: 100vh;
+            position: relative;
+        }
+
+        /* ============================================
+           АНИМАЦИИ И ЭФФЕКТЫ
+        ============================================ */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+
+        @keyframes matrixRain {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100vh); }
+        }
+
+        @keyframes neonPulse {
+            0%, 100% { 
+                box-shadow: 0 0 5px #0ff, 0 0 10px #0ff, 0 0 20px #0ff;
+                border-color: #0ff;
+            }
+            50% { 
+                box-shadow: 0 0 10px #0ff, 0 0 20px #0ff, 0 0 40px #0ff;
+                border-color: #00ffff;
+            }
+        }
+
+        @keyframes blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+
+        /* ============================================
+           ЭКРАНЫ ИГРЫ (СКРЫВАЕМЫЕ СЕКЦИИ)
+        ============================================ */
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .screen.active {
+            display: flex;
+            animation: fadeIn 1s ease-in;
+        }
+
+        /* ============================================
+           ДИСКЛЕЙМЕР
+        ============================================ */
+        #disclaimer {
+            background: #000;
+        }
+
+        .disclaimer-text {
+            max-width: 800px;
+            text-align: center;
+            font-size: 16px;
+            line-height: 1.8;
+            color: #ff4444;
+            border: 2px solid #ff4444;
+            padding: 40px;
+            background: rgba(255, 68, 68, 0.05);
+            box-shadow: 0 0 20px rgba(255, 68, 68, 0.3);
+            margin-bottom: 30px;
+        }
+
+        .disclaimer-text h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #ff4444;
+        }
+
+        .btn {
+            padding: 15px 40px;
+            font-size: 18px;
+            background: #222;
+            color: #666;
+            border: 2px solid #444;
+            cursor: not-allowed;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .btn.enabled {
+            background: #003;
+            color: #0ff;
+            border-color: #0ff;
+            cursor: pointer;
+            animation: neonPulse 2s infinite;
+        }
+
+        .btn.enabled:hover {
+            background: #006;
+            transform: scale(1.05);
+        }
+
+        /* ============================================
+           ГЛАВНОЕ МЕНЮ
+        ============================================ */
+        #mainMenu {
+            background: #000;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .matrix-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.15;
+        }
+
+        .matrix-char {
+            position: absolute;
+            color: #0f0;
+            font-size: 20px;
+            animation: matrixRain linear infinite;
+        }
+
+        .menu-content {
+            z-index: 10;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 50px;
+            text-shadow: 0 0 20px #0ff, 0 0 40px #0ff;
+            animation: glitch 5s infinite;
+        }
+
+        .menu-btn {
+            display: block;
+            margin: 20px auto;
+            padding: 15px 60px;
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid #0ff;
+            color: #0ff;
+            font-size: 20px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+        }
+
+        .menu-btn:hover {
+            background: rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 20px #0ff;
+            transform: translateX(10px);
+        }
+
+        /* ============================================
+           ЭКРАН ВКЛЮЧЕНИЯ ПК
+        ============================================ */
+        #bootScreen {
+            background: linear-gradient(to bottom, #000, #001a1a);
+        }
+
+        .monitor {
+            width: 600px;
+            height: 400px;
+            background: #111;
+            border: 10px solid #333;
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.3);
+        }
+
+        .power-led {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            background: #f00;
+            box-shadow: 0 0 10px #f00;
+            transition: all 0.5s;
+        }
+
+        .power-led.on {
+            background: #0f0;
+            box-shadow: 0 0 20px #0f0;
+        }
+
+        .boot-button {
+            padding: 20px 50px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #0f0;
+            color: #0f0;
+            font-size: 22px;
+            cursor: pointer;
+            margin-top: 50px;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+        }
+
+        .boot-button:hover {
+            background: rgba(0, 255, 0, 0.3);
+            box-shadow: 0 0 30px #0f0;
+        }
+
+        .boot-text {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #0f0;
+            font-size: 14px;
+            line-height: 1.6;
+            display: none;
+        }
+
+        .boot-text.active {
+            display: block;
+        }
+
+        /* ============================================
+           ВИРТУАЛЬНАЯ ОС (РАБОЧИЙ СТОЛ)
+        ============================================ */
+        #desktop {
+            background: linear-gradient(135deg, #0a0a0a, #1a0a2e);
+            padding: 0;
+        }
+
+        .taskbar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background: rgba(0, 0, 0, 0.8);
+            border-top: 2px solid #0ff;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 1000;
+        }
+
+        .taskbar-time {
+            margin-left: auto;
+            color: #0ff;
+            font-size: 16px;
+        }
+
+        .desktop-icons {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            display: grid;
+            grid-template-columns: repeat(4, 120px);
+            gap: 30px;
+        }
+
+        .desktop-icon {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .desktop-icon:hover {
+            background: rgba(0, 255, 255, 0.1);
+            transform: translateY(-5px);
+        }
+
+        .icon-image {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 10px;
+            font-size: 48px;
+            text-align: center;
+            line-height: 64px;
+        }
+
+        .icon-label {
+            color: #0ff;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        /* ============================================
+           МОДАЛЬНЫЕ ОКНА (БРАУЗЕР, МЕССЕНДЖЕР)
+        ============================================ */
+        .window {
+            position: absolute;
+            background: #1a1a1a;
+            border: 2px solid #0ff;
+            border-radius: 5px;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            display: none;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .window.active {
+            display: flex;
+        }
+
+        .window-header {
+            background: #0a0a0a;
+            border-bottom: 1px solid #0ff;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: move;
+        }
+
+        .window-title {
+            color: #0ff;
+            font-size: 16px;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .window-control {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #0ff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .window-control:hover {
+            background: #0ff;
+            color: #000;
+        }
+
+        .window-content {
+            padding: 20px;
+            flex: 1;
+            overflow-y: auto;
+            color: #0ff;
+        }
+
+        /* Браузер */
+        #browserWindow {
+            width: 800px;
+            height: 600px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .browser-bar {
+            background: #0a0a0a;
+            padding: 10px;
+            border-bottom: 1px solid #0ff;
+            display: flex;
+            gap: 10px;
+        }
+
+        .url-bar {
+            flex: 1;
+            background: #000;
+            border: 1px solid #0ff;
+            color: #0ff;
+            padding: 5px 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .video-container {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .video-thumbnail {
+            width: 100%;
+            max-width: 500px;
+            height: 300px;
+            background: #000;
+            border: 2px solid #0ff;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            position: relative;
+        }
+
+        .play-icon {
+            font-size: 80px;
+            color: #0ff;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .play-icon:hover {
+            transform: scale(1.2);
+            text-shadow: 0 0 20px #0ff;
+        }
+
+        .video-title {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #0ff;
+        }
+
+        .video-upload-btn {
+            padding: 15px 40px;
+            background: rgba(0, 255, 255, 0.1);
+            border: 2px solid #0ff;
+            color: #0ff;
+            font-size: 18px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+        }
+
+        .video-upload-btn:hover {
+            background: rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 20px #0ff;
+        }
+
+        .progress-container {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #000;
+            border: 2px solid #0ff;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #0ff, #00ffff);
+            width: 0%;
+            transition: width 0.3s;
+            box-shadow: 0 0 20px #0ff;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #000;
+            font-weight: bold;
+            z-index: 1;
+            mix-blend-mode: difference;
+        }
+
+        .comments-section {
+            margin-top: 30px;
+            text-align: left;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .comment {
+            padding: 10px;
+            border-left: 2px solid #0ff;
+            margin-bottom: 10px;
+            background: rgba(0, 255, 255, 0.05);
+            animation: fadeIn 0.5s;
+        }
+
+        /* Мессенджер */
+        #messengerWindow {
+            width: 700px;
+            height: 500px;
+            top: 100px;
+            right: 50px;
+        }
+
+        .chat-container {
+            background: #000;
+            height: 100%;
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .log-message {
+            padding: 8px;
+            margin-bottom: 5px;
+            border-left: 3px solid #0f0;
+            background: rgba(0, 255, 0, 0.05);
+            animation: fadeIn 0.5s;
+            word-break: break-all;
+        }
+
+        .log-time {
+            color: #0ff;
+        }
+
+        .log-user {
+            color: #ff0;
+        }
+
+        .log-token {
+            color: #0f0;
+        }
+
+        /* Магазин */
+        #shopWindow {
+            width: 600px;
+            height: 500px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .shop-item {
+            padding: 15px;
+            border: 1px solid #0ff;
+            margin-bottom: 15px;
+            background: rgba(0, 255, 255, 0.05);
+            transition: all 0.3s;
+        }
+
+        .shop-item:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: #00ffff;
+        }
+
+        .shop-item h3 {
+            color: #0ff;
+            margin-bottom: 10px;
+        }
+
+        .shop-item p {
+            margin-bottom: 10px;
+            color: #0f0;
+            font-size: 12px;
+        }
+
+        .shop-item button {
+            padding: 8px 20px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #0f0;
+            color: #0f0;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            transition: all 0.3s;
+        }
+
+        .shop-item button:hover:not(:disabled) {
+            background: rgba(0, 255, 0, 0.3);
+            box-shadow: 0 0 10px #0f0;
+        }
+
+        .shop-item button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .shop-item.purchased {
+            opacity: 0.5;
+            border-color: #444;
+        }
+
+        /* ============================================
+           ИНТЕРФЕЙС СТАТИСТИКИ
+        ============================================ */
+        .stats-panel {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #0ff;
+            padding: 15px;
+            min-width: 250px;
+            z-index: 50;
+        }
+
+        .stat-item {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-label {
+            color: #0ff;
+        }
+
+        .stat-value {
+            color: #0f0;
+            font-weight: bold;
+        }
+
+        .danger-bar {
+            width: 100%;
+            height: 20px;
+            background: #000;
+            border: 1px solid #f00;
+            margin-top: 5px;
+            position: relative;
+        }
+
+        .danger-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff0, #f00);
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        .danger-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        /* ============================================
+           ЭКРАНЫ ЗАВЕРШЕНИЯ ИГРЫ
+        ============================================ */
+        .ending-screen {
+            background: #000;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .ending-title {
+            font-size: 42px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px;
+        }
+
+        .ending-text {
+            font-size: 18px;
+            line-height: 1.8;
+            max-width: 800px;
+            margin: 0 auto 30px;
+        }
+
+        #arrestScreen .ending-title {
+            color: #f00;
+            text-shadow: 0 0 20px #f00;
+            animation: glitch 0.5s infinite;
+        }
+
+        #arrestScreen .ending-text {
+            color: #ff4444;
+        }
+
+        #victoryScreen .ending-title {
+            color: #0f0;
+            text-shadow: 0 0 20px #0f0;
+        }
+
+        #victoryScreen .ending-text {
+            color: #0ff;
+        }
+
+        .bsod {
+            background: #0000aa;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            text-align: left;
+        }
+
+        .tips-list {
+            text-align: left;
+            max-width: 700px;
+            margin: 20px auto;
+        }
+
+        .tips-list li {
+            margin-bottom: 15px;
+            color: #0ff;
+        }
+
+        /* ============================================
+           МОДАЛЬНОЕ ОКНО "ОБ ИГРЕ"
+        ============================================ */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #0a0a0a;
+            border: 2px solid #0ff;
+            padding: 40px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 30px;
+            height: 30px;
+            border: 1px solid #f00;
+            color: #f00;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .modal-close:hover {
+            background: #f00;
+            color: #000;
+        }
+
+        /* ============================================
+           СКРОЛЛБАРЫ
+        ============================================ */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #000;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #0ff;
+            border: 1px solid #000;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00ffff;
+        }
+
+        /* ============================================
+           ЗВУКОВЫЕ ЭФФЕКТЫ (ВИЗУАЛЬНАЯ ИНДИКАЦИЯ)
+        ============================================ */
+        .sound-indicator {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            color: #0ff;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 10000;
+        }
+
+        .sound-indicator.active {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ИНДИКАТОР ЗВУКА -->
+    <div class="sound-indicator" id="soundIndicator">🔊 Sound</div>
+
+    <!-- ============================================
+         ЭКРАН 1: ДИСКЛЕЙМЕР
+    ============================================ -->
+    <div class="screen active" id="disclaimer">
+        <div class="disclaimer-text">
+            <h2>⚠️ ВНИМАНИЕ ⚠️</h2>
+            <p>
+                Данный симулятор создан исключительно в <strong>образовательных, развлекательных и ознакомительных целях</strong>.
+                Разработчики проекта категорически и абсолютно <strong>осуждают любые проявления фишинга, киберпреступности, 
+                кражи персональных данных и взлома аккаунтов</strong>.
+            </p>
+            <p style="margin-top: 20px;">
+                Помните: за любые подобные действия в реальном мире наступает <strong>уголовная ответственность</strong>.
+                Изучайте защитные механизмы, чтобы обезопасить себя и своих близких.
+            </p>
+            <p style="margin-top: 20px; font-size: 14px;">
+                Эта игра показывает механику мошенничества изнутри, чтобы вы могли распознать угрозы и никогда не стать жертвой.
+            </p>
+        </div>
+        <button class="btn" id="disclaimerBtn" disabled>
+            Подождите <span id="countdown">5</span> секунд...
+        </button>
+    </div>
+
+    <!-- ============================================
+         ЭКРАН 2: ГЛАВНОЕ МЕНЮ
+    ============================================ -->
+    <div class="screen" id="mainMenu">
+        <div class="matrix-bg" id="matrixBg"></div>
+        <div class="menu-content">
+            <div class="logo">
+                ╔═══════════════════════════╗<br>
+                ║ SCAMMER SIMULATOR ║<br>
+                ║ The Cyber Path ║<br>
+                ╚═══════════════════════════╝
+            </div>
+            <button class="menu-btn" onclick="startGame()">▶ Начать симуляцию</button>
+            <button class="menu-btn" onclick="showAbout()">ℹ Об игре</button>
+            <button class="menu-btn" onclick="showAuthors()">👥 Авторы</button>
+        </div>
+    </div>
+
+    <!-- ============================================
+         ЭКРАН 3: ВКЛЮЧЕНИЕ ПК
+    ============================================ -->
+    <div class="screen" id="bootScreen">
+        <div class="monitor">
+            <div class="boot-text" id="bootText"></div>
+            <div class="power-led" id="powerLed"></div>
+        </div>
+        <button class="boot-button" id="powerBtn" onclick="bootSystem()">
+            ⚡ Включить систему
+        </button>
+    </div>
+
+    <!-- ============================================
+         ЭКРАН 4: РАБОЧИЙ СТОЛ (ВИРТУАЛЬНАЯ ОС)
+    ============================================ -->
+    <div class="screen" id="desktop">
+        <!-- Панель статистики -->
+        <div class="stats-panel">
+            <div class="stat-item">
+                <span class="stat-label">💰 Крипто-кредиты:</span>
+                <span class="stat-value" id="moneyDisplay">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">📊 Логи собрано:</span>
+                <span class="stat-value" id="logsDisplay">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">⚡ Доход/лог:</span>
+                <span class="stat-value" id="incomeDisplay">10</span>
+            </div>
+            <div class="stat-item" style="flex-direction: column; align-items: flex-start;">
+                <span class="stat-label">🚨 Внимание Киберполиции:</span>
+                <div class="danger-bar">
+                    <div class="danger-fill" id="dangerFill"></div>
+                    <div class="danger-text" id="dangerText">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Иконки рабочего стола -->
+        <div class="desktop-icons">
+            <div class="desktop-icon" onclick="openBrowser()">
+                <div class="icon-image">🌐</div>
+                <div class="icon-label">Sphere Browser</div>
+            </div>
+            <div class="desktop-icon" onclick="openMessenger()">
+                <div class="icon-image">💬</div>
+                <div class="icon-label">ChatCord</div>
+            </div>
+            <div class="desktop-icon" onclick="openShop()">
+                <div class="icon-image">🛒</div>
+                <div class="icon-label">DarkNet Shop</div>
+            </div>
+            <div class="desktop-icon" onclick="showNotes()">
+                <div class="icon-image">📝</div>
+                <div class="icon-label">Заметки</div>
+            </div>
+        </div>
+
+        <!-- Панель задач -->
+        <div class="taskbar">
+            <div style="color: #0ff; font-size: 18px;">WebOS v2.1</div>
+            <div class="taskbar-time" id="taskbarTime">00:00:00</div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         ОКНО БРАУЗЕРА
+    ============================================ -->
+    <div class="window" id="browserWindow">
+        <div class="window-header">
+            <div class="window-title">🌐 Sphere Browser - ViewTube</div>
+            <div class="window-controls">
+                <div class="window-control" onclick="minimizeWindow('browserWindow')">_</div>
+                <div class="window-control" onclick="closeWindow('browserWindow')">×</div>
+            </div>
+        </div>
+        <div class="browser-bar">
+            <input type="text" class="url-bar" value="https://viewtube.net/watch?v=free_robux_2024" readonly>
+        </div>
+        <div class="window-content">
+            <div class="video-container">
+                <div id="videoSection">
+                    <div class="video-thumbnail">
+                        <div class="play-icon">▶</div>
+                    </div>
+                    <h2 class="video-title">🎮 БЕСПЛАТНАЯ ВАЛЮТА В ИГРАХ! 100% РАБОЧИЙ МЕТОД 2024!</h2>
+                    <p style="color: #0ff; margin-bottom: 20px;">
+                        👁 12,482,193 просмотров • 3 дня назад
+                    </p>
+                    <button class="video-upload-btn" onclick="uploadVideo()">
+                        📤 Загрузить своё видео с фишинг-ссылкой
+                    </button>
+                    <div class="progress-container" id="progressContainer">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill"></div>
+                            <div class="progress-text" id="progressText">0%</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="comments-section" id="commentsSection"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         ОКНО МЕССЕНДЖЕРА
+    ============================================ -->
+    <div class="window" id="messengerWindow">
+        <div class="window-header">
+            <div class="window-title">💬 ChatCord - Логи жертв</div>
+            <div class="window-controls">
+                <div class="window-control" onclick="minimizeWindow('messengerWindow')">_</div>
+                <div class="window-control" onclick="closeWindow('messengerWindow')">×</div>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="chat-container" id="chatContainer">
+                <div style="color: #0ff; margin-bottom: 20px; border-bottom: 1px solid #0ff; padding-bottom: 10px;">
+                    📡 Канал перехвата данных активен...<br>
+                    Ожидание входящих жертв...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         ОКНО МАГАЗИНА
+    ============================================ -->
+    <div class="window" id="shopWindow">
+        <div class="window-header">
+            <div class="window-title">🛒 DarkNet Shop - Улучшения</div>
+            <div class="window-controls">
+                <div class="window-control" onclick="closeWindow('shopWindow')">×</div>
+            </div>
+        </div>
+        <div class="window-content">
+            <div class="shop-item" id="shopVpn">
+                <h3>🔒 VPN Защита</h3>
+                <p>Снижает скорость роста внимания киберполиции на 50%</p>
+                <p><strong>Цена: 500 кредитов</strong></p>
+                <button onclick="buyUpgrade('vpn', 500)">Купить</button>
+            </div>
+            <div class="shop-item" id="shopBotnet">
+                <h3>🤖 Ботнет</h3>
+                <p>Автоматизирует сбор логов. Жертвы попадаются в 2 раза чаще</p>
+                <p><strong>Цена: 1000 кредитов</strong></p>
+                <button onclick="buyUpgrade('botnet', 1000)">Купить</button>
+            </div>
+            <div class="shop-item" id="shopSpoofer">
+                <h3>🎭 IP Спуфер</h3>
+                <p>Увеличивает доход с каждого лога в 2 раза</p>
+                <p><strong>Цена: 1500 кредитов</strong></p>
+                <button onclick="buyUpgrade('spoofer', 1500)">Купить</button>
+            </div>
+            <div class="shop-item" id="shopProxy">
+                <h3>🌐 Прокси-сеть</h3>
+                <p>Дополнительно снижает внимание полиции на 30%</p>
+                <p><strong>Цена: 2000 кредитов</strong></p>
+                <button onclick="buyUpgrade('proxy', 2000)">Купить</button>
+            </div>
+            <div class="shop-item" id="shopOffshore" style="border: 2px solid #0f0;">
+                <h3>🏝️ Уйти на покой в офшор</h3>
+                <p>ФИНАЛЬНОЕ УЛУЧШЕНИЕ - Завершить карьеру на пике и скрыться</p>
+                <p><strong>Цена: 5000 кредитов</strong></p>
+                <button onclick="buyUpgrade('offshore', 5000)">Купить и завершить игру</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         ЭКРАН 5: АРЕСТ (ПОРАЖЕНИЕ)
+    ============================================ -->
+    <div class="screen ending-screen" id="arrestScreen">
+        <div class="bsod" style="max-width: 800px; margin: 0 auto;">
+            <pre>
+╔════════════════════════════════════════════════════════════╗
+║            СИСТЕМА ЗАБЛОКИРОВАНА                          ║
+║         КИБЕРПОЛИЦИЯ - ОТДЕЛ K                            ║
+╚════════════════════════════════════════════════════════════╝
+
+ВНИМАНИЕ! Ваша активность была обнаружена и отслежена.
+
+IP-адрес: 192.168.1.337
+Местоположение: Определено
+Записи трафика: Изъяты
+Собранные улики: 247 файлов
+
+ОБВИНЕНИЯ:
+- Фишинг и кража персональных данных
+- Несанкционированный доступ к аккаунтам
+- Распространение вредоносного ПО
+- Мошенничество в крупном размере
+
+ПРИГОВОР: Весь заработок конфискован.
+Виртуальный персонаж отправлен под суд.
+
+════════════════════════════════════════════════════════════
+            </pre>
+        </div>
+        <div class="ending-title">⚠️ ВАС ВЫЧИСЛИЛИ ⚠️</div>
+        <div class="ending-text">
+            <p style="margin-bottom: 20px;">
+                Вот почему легкие деньги в интернете всегда ведут к краху.
+                Киберпреступность оставляет цифровые следы, которые невозможно полностью скрыть.
+            </p>
+            <p style="margin-bottom: 20px;">
+                В реальном мире вас ждет не виртуальный экран, а реальная тюрьма.
+            </p>
+            <p style="color: #0f0; font-size: 20px;">
+                <strong>Играй честно. Защищай себя и других.</strong>
+            </p>
+        </div>
+        <button class="menu-btn" onclick="restartGame()" style="margin-top: 30px;">🔄 Начать заново</button>
+    </div>
+
+    <!-- ============================================
+         ЭКРАН 6: ПОБЕДА
+    ============================================ -->
+    <div class="screen ending-screen" id="victoryScreen">
+        <div class="ending-title">🏝️ УСПЕШНЫЙ УХОД НА ПОКОЙ 🏝️</div>
+        <div class="ending-text">
+            <p style="margin-bottom: 20px;">
+                Вы собрали достаточно средств и вовремя остановились. Персонаж скрылся в офшорной зоне,
+                где его не достанут власти.
+            </p>
+            <p style="margin-bottom: 20px; color: #ff0;">
+                Но помните: это всего лишь игра. В реальной жизни такого финала не существует.
+                Киберпреступники всегда оставляют следы, и рано или поздно их находят.
+            </p>
+            <p style="margin-bottom: 30px; font-size: 18px; color: #0ff;">
+                <strong>Теперь вы знаете, как работают мошенники. Используйте эти знания, чтобы защитить себя!</strong>
+            </p>
+            
+            <h3 style="color: #0f0; margin-bottom: 15px;">💡 СОВЕТЫ ПО КИБЕРБЕЗОПАСНОСТИ:</h3>
+            <ul class="tips-list">
+                <li>🔒 Никогда не переходите по подозрительным ссылкам из видео, комментариев или сообщений</li>
+                <li>🎮 Бесплатную игровую валюту НЕ РАЗДАЮТ - это всегда ловушка</li>
+                <li>🔑 Используйте двухфакторную аутентификацию везде, где возможно</li>
+                <li>📧 Проверяйте адреса отправителей - мошенники маскируются под официальные сервисы</li>
+                <li>🛡️ Никому не сообщайте свои токены, пароли и коды доступа</li>
+                <li>👨‍👩‍👧 Расскажите близким о методах мошенников - защитите их</li>
+                <li>⚠️ Если предложение выглядит слишком хорошо - это обман</li>
+            </ul>
+        </div>
+        <button class="menu-btn" onclick="restartGame()" style="margin-top: 30px;">🔄 Начать заново</button>
+    </div>
+
+    <!-- ============================================
+         МОДАЛЬНОЕ ОКНО "ОБ ИГРЕ"
+    ============================================ -->
+    <div class="modal" id="aboutModal">
+        <div class="modal-content">
+            <div class="modal-close" onclick="closeModal('aboutModal')">×</div>
+            <h2 style="color: #0ff; margin-bottom: 20px;">ℹ️ Об игре</h2>
+            <p style="color: #0f0; line-height: 1.8; margin-bottom: 15px;">
+                <strong>Scammer Simulator: The Cyber Path</strong> - это образовательная браузерная игра-симулятор,
+                созданная для демонстрации механик киберпреступности изнутри.
+            </p>
+            <p style="color: #0f0; line-height: 1.8; margin-bottom: 15px;">
+                Цель проекта - показать пользователям интернета, как работают фишинговые атаки, чтобы они могли
+                распознавать угрозы и защищать себя в реальной жизни.
+            </p>
+            <p style="color: #0f0; line-height: 1.8; margin-bottom: 15px;">
+                Игра НЕ призывает к совершению противоправных действий. Она учит бдительности и осознанности
+                при работе в интернете.
+            </p>
+            <p style="color: #ff0; line-height: 1.8; font-weight: bold;">
+                Помните: знание методов мошенников - ваша лучшая защита!
+            </p>
+        </div>
+    </div>
+
+    <!-- ============================================
+         МОДАЛЬНОЕ ОКНО "АВТОРЫ"
+    ============================================ -->
+    <div class="modal" id="authorsModal">
+        <div class="modal-content">
+            <div class="modal-close" onclick="closeModal('authorsModal')">×</div>
+            <h2 style="color: #0ff; margin-bottom: 20px;">👥 Авторы проекта</h2>
+            <p style="color: #0f0; line-height: 1.8; margin-bottom: 15px;">
+                <strong>Концепция и дизайн:</strong> Команда кибербезопасности
+            </p>
+            <p style="color: #0f0; line-height: 1.8; margin-bottom: 15px;">
+                <strong>Разработка:</strong> Claude AI & Энтузиасты образовательных игр
+            </p>
+            <p style="color: #0f0; line-height: 1.8; margin-bottom: 15px;">
+                <strong>Цель:</strong> Повышение уровня цифровой грамотности и защиты пользователей
+            </p>
+            <p style="color: #0ff; line-height: 1.8; margin-top: 30px; text-align: center;">
+                Сделано с 💙 для безопасного интернета
+            </p>
+        </div>
+    </div>
+
+    <!-- ============================================
+         МОДАЛЬНОЕ ОКНО "ЗАМЕТКИ"
+    ============================================ -->
+    <div class="modal" id="notesModal">
+        <div class="modal-content">
+            <div class="modal-close" onclick="closeModal('notesModal')">×</div>
+            <h2 style="color: #0ff; margin-bottom: 20px;">📝 Заметки хакера</h2>
+            <div style="color: #0f0; line-height: 1.8; font-size: 14px;">
+                <p style="margin-bottom: 15px; border-left: 3px solid #0ff; padding-left: 10px;">
+                    <strong>[День 1]</strong><br>
+                    Загрузил первое видео на ViewTube. Название цепляющее: "Бесплатная валюта".
+                    Дети и подростки всегда клюют на это. Встроил фишинг-ссылку в описание.
+                </p>
+                <p style="margin-bottom: 15px; border-left: 3px solid #0ff; padding-left: 10px;">
+                    <strong>[День 3]</strong><br>
+                    Первые логи пошли! Токены доступа к аккаунтам сыпятся как из рога изобилия.
+                    Страшно подумать, насколько люди доверчивы...
+                </p>
+                <p style="margin-bottom: 15px; border-left: 3px solid #ff0; padding-left: 10px;">
+                    <strong>[День 7]</strong><br>
+                    Купил VPN. Начал замечать странную активность в логах - кто-то отслеживает трафик.
+                    Надо быть осторожнее.
+                </p>
+                <p style="margin-bottom: 15px; border-left: 3px solid #f00; padding-left: 10px;">
+                    <strong>[День 14]</strong><br>
+                    Уровень внимания полиции растет. Может, пора остановиться? Но деньги так легко идут...
+                    Еще немного, и можно будет уйти на покой.
+                </p>
+                <p style="margin-top: 30px; color: #0ff; text-align: center; font-style: italic;">
+                    "Каждая жертва - это реальный человек. Каждый украденный аккаунт - чья-то боль.
+                    Это всего лишь игра. В жизни выбирай честный путь."
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================
+         JAVASCRIPT - ИГРОВАЯ ЛОГИКА
+    ============================================ -->
+    <script>
+        // ========================================
+        // ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ СОСТОЯНИЯ ИГРЫ
+        // ========================================
+        
+        let gameState = {
+            money: 0,              // Крипто-кредиты
+            logs: 0,               // Количество собранных логов
+            incomePerLog: 10,      // Доход с каждого лога
+            dangerLevel: 0,        // Уровень внимания киберполиции (0-100)
+            dangerSpeed: 1,        // Скорость роста внимания
+            logSpeed: 5000,        // Интервал появления логов (мс)
+            videoUploaded: false,  // Загружено ли видео
+            upgrades: {
+                vpn: false,
+                botnet: false,
+                spoofer: false,
+                proxy: false,
+                offshore: false
+            }
+        };
+
+        let logInterval = null;
+        let dangerInterval = null;
+
+        // ========================================
+        // УТИЛИТЫ
+        // ========================================
+
+        function playSound() {
+            // Визуальная индикация звука (вместо настоящего звука)
+            const indicator = document.getElementById('soundIndicator');
+            indicator.classList.add('active');
+            setTimeout(() => indicator.classList.remove('active'), 300);
+        }
+
+        function switchScreen(fromId, toId) {
+            const from = document.getElementById(fromId);
+            const to = document.getElementById(toId);
+            
+            from.style.animation = 'fadeOut 0.5s ease-out';
+            setTimeout(() => {
+                from.classList.remove('active');
+                to.classList.add('active');
+                from.style.animation = '';
+            }, 500);
+        }
+
+        function updateStats() {
+            document.getElementById('moneyDisplay').textContent = gameState.money;
+            document.getElementById('logsDisplay').textContent = gameState.logs;
+            document.getElementById('incomeDisplay').textContent = gameState.incomePerLog;
+            
+            const dangerFill = document.getElementById('dangerFill');
+            const dangerText = document.getElementById('dangerText');
+            dangerFill.style.width = gameState.dangerLevel + '%';
+            dangerText.textContent = Math.round(gameState.dangerLevel) + '%';
+        }
+
+        // ========================================
+        // ДИСКЛЕЙМЕР - Обратный отсчет
+        // ========================================
+
+        let countdown = 5;
+        const disclaimerBtn = document.getElementById('disclaimerBtn');
+        const countdownSpan = document.getElementById('countdown');
+
+        const countdownInterval = setInterval(() => {
+            countdown--;
+            countdownSpan.textContent = countdown;
+            
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                disclaimerBtn.disabled = false;
+                disclaimerBtn.classList.add('enabled');
+                disclaimerBtn.innerHTML = '✓ Я всё понял и обязуюсь использовать знания во благо';
+                disclaimerBtn.onclick = () => switchScreen('disclaimer', 'mainMenu');
+            }
+        }, 1000);
+
+        // ========================================
+        // ГЛАВНОЕ МЕНЮ - Анимация фона Matrix
+        // ========================================
+
+        function createMatrixRain() {
+            const container = document.getElementById('matrixBg');
+            const chars = '01アイウエオカキクケコサシスセソタチツテト';
+            
+            for (let i = 0; i < 50; i++) {
+                const span = document.createElement('div');
+                span.className = 'matrix-char';
+                span.textContent = chars[Math.floor(Math.random() * chars.length)];
+                span.style.left = Math.random() * 100 + '%';
+                span.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                span.style.animationDelay = Math.random() * 5 + 's';
+                container.appendChild(span);
+            }
+        }
+
+        createMatrixRain();
+
+        // ========================================
+        // ФУНКЦИИ НАВИГАЦИИ МЕНЮ
+        // ========================================
+
+        function startGame() {
+            playSound();
+            switchScreen('mainMenu', 'bootScreen');
+        }
+
+        function showAbout() {
+            playSound();
+            document.getElementById('aboutModal').classList.add('active');
+        }
+
+        function showAuthors() {
+            playSound();
+            document.getElementById('authorsModal').classList.add('active');
+        }
+
+        function showNotes() {
+            playSound();
+            document.getElementById('notesModal').classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            playSound();
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // ========================================
+        // ЗАГРУЗКА СИСТЕМЫ (BOOT SCREEN)
+        // ========================================
+
+        function bootSystem() {
+            playSound();
+            const powerBtn = document.getElementById('powerBtn');
+            const powerLed = document.getElementById('powerLed');
+            const bootText = document.getElementById('bootText');
+            
+            powerBtn.style.display = 'none';
+            powerLed.classList.add('on');
+            bootText.classList.add('active');
+            
+            const bootMessages = [
+                'BIOS Version 3.14.159',
+                'Loading Kernel...',
+                'Initializing drivers...',
+                'Mounting file systems...',
+                'Connecting to proxy network...',
+                'Establishing encrypted connection...',
+                'Loading WebOS interface...',
+                'System Operational.',
+                '',
+                'Welcome, User.'
+            ];
+            
+            let currentLine = 0;
+            const bootInterval = setInterval(() => {
+                if (currentLine < bootMessages.length) {
+                    bootText.innerHTML += bootMessages[currentLine] + '<br>';
+                    currentLine++;
+                } else {
+                    clearInterval(bootInterval);
+                    setTimeout(() => {
+                        switchScreen('bootScreen', 'desktop');
+                        startClock();
+                    }, 1000);
+                }
+            }, 300);
+        }
+
+        // ========================================
+        // РАБОЧИЙ СТОЛ - Часы
+        // ========================================
+
+        function startClock() {
+            setInterval(() => {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('ru-RU');
+                document.getElementById('taskbarTime').textContent = timeString;
+            }, 1000);
+        }
+
+        // ========================================
+        // УПРАВЛЕНИЕ ОКНАМИ
+        // ========================================
+
+        function openBrowser() {
+            playSound();
+            document.getElementById('browserWindow').classList.add('active');
+        }
+
+        function openMessenger() {
+            playSound();
+            document.getElementById('messengerWindow').classList.add('active');
+        }
+
+        function openShop() {
+            playSound();
+            document.getElementById('shopWindow').classList.add('active');
+        }
+
+        function closeWindow(windowId) {
+            playSound();
+            document.getElementById(windowId).classList.remove('active');
+        }
+
+        function minimizeWindow(windowId) {
+            playSound();
+            closeWindow(windowId);
+        }
+
+        // ========================================
+        // ЗАГРУЗКА ВИДЕО И ЗАПУСК ФИШИНГА
+        // ========================================
+
+        function uploadVideo() {
+            if (gameState.videoUploaded) return;
+            
+            playSound();
+            gameState.videoUploaded = true;
+            
+            const progressContainer = document.getElementById('progressContainer');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            const commentsSection = document.getElementById('commentsSection');
+            
+            progressContainer.style.display = 'block';
+            
+            // Анимация загрузки
+            let progress = 0;
+            const uploadInterval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(uploadInterval);
+                    
+                    // Показываем фейковые комментарии
+                    setTimeout(() => addFakeComments(), 500);
+                    
+                    // Запускаем сбор логов
+                    setTimeout(() => startLogCollection(), 1000);
+                }
+                
+                progressFill.style.width = progress + '%';
+                progressText.textContent = Math.round(progress) + '%';
+            }, 200);
+        }
+
+        function addFakeComments() {
+            const comments = [
+                { user: 'NoobGamer123', text: 'Ого, неужели это работает? 😮' },
+                { user: 'ProPlayer777', text: 'Проверил, получил 10000 робуксов! Спасибо!' },
+                { user: 'TrustMeBro', text: 'Это не скам, я уже третий раз пользуюсь 🔥' },
+                { user: 'SusUser404', text: 'А вы точно уверены, что это безопасно?' },
+                { user: 'RichKid2024', text: 'Сработало за 5 минут! Рекомендую всем! 💰' }
+            ];
+            
+            const commentsSection = document.getElementById('commentsSection');
+            comments.forEach((comment, index) => {
+                setTimeout(() => {
+                    const div = document.createElement('div');
+                    div.className = 'comment';
+                    div.innerHTML = `<strong style="color: #0ff;">@${comment.user}</strong>: ${comment.text}`;
+                    commentsSection.appendChild(div);
+                    playSound();
+                }, index * 800);
+            });
+        }
+
+        // ========================================
+        // СИСТЕМА СБОРА ЛОГОВ
+        // ========================================
+
+        function startLogCollection() {
+            // Начинаем автоматический сбор логов
+            logInterval = setInterval(() => {
+                collectLog();
+            }, gameState.logSpeed);
+            
+            // Начинаем увеличивать внимание полиции
+            dangerInterval = setInterval(() => {
+                increaseDanger();
+            }, 1000);
+        }
+
+        function collectLog() {
+            const victims = [
+                'Victim_228', 'NoobMaster', 'EasyTarget', 'TrustingKid',
+                'GullibleUser', 'NaivePlayer', 'BelieverBob', 'ClickerChris',
+                'SimpleSimon', 'InnocentIvan', 'CarelessCarl', 'ObliviousOlga'
+            ];
+            
+            const victim = victims[Math.floor(Math.random() * victims.length)];
+            const token = '.ROBLOSECURITY_' + Math.random().toString(36).substring(2, 15) + 
+                         Math.random().toString(36).substring(2, 15);
+            
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('ru-RU');
+            
+            const chatContainer = document.getElementById('chatContainer');
+            const logDiv = document.createElement('div');
+            logDiv.className = 'log-message';
+            logDiv.innerHTML = `
+                <span class="log-time">[LOG - ${timeString}]</span> 
+                User: <span class="log-user">${victim}</span> | 
+                Token: <span class="log-token">${token}</span>
+            `;
+            
+            chatContainer.appendChild(logDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            // Обновляем состояние
+            gameState.logs++;
+            gameState.money += gameState.incomePerLog;
+            updateStats();
+            playSound();
+        }
+
+        function increaseDanger() {
+            gameState.dangerLevel += 0.1 * gameState.dangerSpeed;
+            
+            if (gameState.dangerLevel >= 100) {
+                gameOver();
+            }
+            
+            updateStats();
+        }
+
+        // ========================================
+        // СИСТЕМА УЛУЧШЕНИЙ (МАГАЗИН)
+        // ========================================
+
+        function buyUpgrade(upgradeType, cost) {
+            if (gameState.money < cost) {
+                alert('❌ Недостаточно средств!');
+                return;
+            }
+            
+            if (gameState.upgrades[upgradeType]) {
+                alert('✓ Вы уже купили это улучшение!');
+                return;
+            }
+            
+            playSound();
+            gameState.money -= cost;
+            gameState.upgrades[upgradeType] = true;
+            
+            // Применяем эффекты улучшений
+            switch(upgradeType) {
+                case 'vpn':
+                    gameState.dangerSpeed *= 0.5; // Снижаем скорость роста на 50%
+                    alert('✓ VPN активирован! Скорость роста внимания полиции снижена.');
+                    break;
+                    
+                case 'botnet':
+                    gameState.logSpeed /= 2; // Логи появляются в 2 раза чаще
+                    clearInterval(logInterval);
+                    logInterval = setInterval(() => collectLog(), gameState.logSpeed);
+                    alert('✓ Ботнет запущен! Логи собираются в 2 раза быстрее.');
+                    break;
+                    
+                case 'spoofer':
+                    gameState.incomePerLog *= 2; // Доход удваивается
+                    alert('✓ IP Спуфер активирован! Доход с каждого лога удвоен.');
+                    break;
+                    
+                case 'proxy':
+                    gameState.dangerSpeed *= 0.7; // Дополнительное снижение на 30%
+                    alert('✓ Прокси-сеть подключена! Дополнительная защита активна.');
+                    break;
+                    
+                case 'offshore':
+                    victory();
+                    return;
+            }
+            
+            // Визуально помечаем купленное улучшение
+            document.getElementById('shop' + upgradeType.charAt(0).toUpperCase() + upgradeType.slice(1))
+                .classList.add('purchased');
+            
+            updateStats();
+        }
+
+        // ========================================
+        // ЗАВЕРШЕНИЕ ИГРЫ
+        // ========================================
+
+        function gameOver() {
+            playSound();
+            clearInterval(logInterval);
+            clearInterval(dangerInterval);
+            
+            // Сирена (визуальный эффект)
+            let sirenCount = 0;
+            const sirenInterval = setInterval(() => {
+                document.body.style.background = sirenCount % 2 === 0 ? '#00f' : '#f00';
+                sirenCount++;
+                
+                if (sirenCount >= 6) {
+                    clearInterval(sirenInterval);
+                    document.body.style.background = '#000';
+                    switchScreen('desktop', 'arrestScreen');
+                }
+            }, 300);
+        }
+
+        function victory() {
+            playSound();
+            clearInterval(logInterval);
+            clearInterval(dangerInterval);
+            switchScreen('desktop', 'victoryScreen');
+        }
+
+        function restartGame() {
+            playSound();
+            
+            // Сброс состояния игры
+            gameState = {
+                money: 0,
+                logs: 0,
+                incomePerLog: 10,
+                dangerLevel: 0,
+                dangerSpeed: 1,
+                logSpeed: 5000,
+                videoUploaded: false,
+                upgrades: {
+                    vpn: false,
+                    botnet: false,
+                    spoofer: false,
+                    proxy: false,
+                    offshore: false
+                }
+            };
+            
+            // Очистка интерфейсов
+            document.getElementById('chatContainer').innerHTML = `
+                <div style="color: #0ff; margin-bottom: 20px; border-bottom: 1px solid #0ff; padding-bottom: 10px;">
+                    📡 Канал перехвата данных активен...<br>
+                    Ожидание входящих жертв...
+                </div>
+            `;
+            document.getElementById('commentsSection').innerHTML = '';
+            document.getElementById('progressContainer').style.display = 'none';
+            document.getElementById('progressFill').style.width = '0%';
+            
+            // Сброс магазина
+            document.querySelectorAll('.shop-item').forEach(item => {
+                item.classList.remove('purchased');
+            });
+            
+            // Закрытие всех окон
+            document.querySelectorAll('.window').forEach(window => {
+                window.classList.remove('active');
+            });
+            
+            updateStats();
+            
+            // Возврат в меню
+            const currentScreen = document.querySelector('.screen.active');
+            switchScreen(currentScreen.id, 'mainMenu');
+        }
+
+        // ========================================
+        // ИНИЦИАЛИЗАЦИЯ
+        // ========================================
+
+        updateStats();
+    </script>
+</body>
+</html>
